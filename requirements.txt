@@ -1,0 +1,8 @@
+
+Flask
+mysql-connector-python
+opencv-contrib-python
+numpy
+reportlab
+openpyxl
+gunicorn

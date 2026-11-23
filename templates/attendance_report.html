@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Individual Attendance Report</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            color: #243b55;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #243b55;
+            text-decoration: none;
+        }
+
+        .details {
+            background: #f4f6f9;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .card {
+            padding: 18px;
+            border-radius: 8px;
+            background: #eef2f7;
+            text-align: center;
+        }
+
+        .card h3 {
+            margin: 5px 0;
+            font-size: 25px;
+        }
+
+        .present {
+            color: green;
+            font-weight: bold;
+        }
+
+        .absent {
+            color: red;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 13px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #243b55;
+            color: white;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 750px) {
+            .summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .container {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <a class="back" href="{{ url_for('attendance_management') }}">
+        ← Back to Attendance Management
+    </a>
+
+    <h2>Individual Class Attendance Report</h2>
+    <div style="margin: 20px 0; display: flex; gap: 12px; flex-wrap: wrap;">
+
+    <a href="{{ url_for('download_attendance_pdf', session_id=session_info.session_id) }}"
+       style="background: #dc3545; color: white; padding: 12px 20px;
+              text-decoration: none; border-radius: 6px;">
+        Download PDF
+    </a>
+
+    <a href="{{ url_for('download_attendance_excel', session_id=session_info.session_id) }}"
+       style="background: #198754; color: white; padding: 12px 20px;
+              text-decoration: none; border-radius: 6px;">
+        Download Excel
+    </a>
+
+</div>
+
+    <div class="details">
+        <strong>Session ID:</strong> {{ session_info.session_id }}<br>
+
+        <strong>Subject:</strong> {{ session_info.subject_name }}<br>
+
+        <strong>Lecturer:</strong> {{ session_info.lecturer_name or "N/A" }}<br>
+
+        <strong>Session Date:</strong>
+        {{ session_info.session_date.strftime("%d-%m-%Y") if session_info.session_date else "N/A" }}<br>
+
+        <strong>Start Time:</strong>
+        {{ session_info.started_at.strftime("%I:%M:%S %p") if session_info.started_at else "N/A" }}<br>
+
+        <strong>End Time:</strong>
+        {{ session_info.ended_at.strftime("%I:%M:%S %p") if session_info.ended_at else "N/A" }}<br>
+
+        <strong>Duration:</strong> {{ session_info.duration_minutes or 0 }} minutes
+    </div>
+
+    <div class="summary">
+
+        <div class="card">
+            <p>Total Enrolled</p>
+            <h3>{{ total_enrolled }}</h3>
+        </div>
+
+        <div class="card">
+            <p>Present</p>
+            <h3 class="present">{{ present_count }}</h3>
+        </div>
+
+        <div class="card">
+            <p>Absent</p>
+            <h3 class="absent">{{ absent_count }}</h3>
+        </div>
+
+        <div class="card">
+            <p>Attendance</p>
+            <h3>{{ attendance_percentage }}%</h3>
+        </div>
+
+    </div>
+
+    <h3>Student Attendance Details</h3>
+
+    {% if students %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Attendance Status</th>
+                <th>Marked Time</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ loop.index }}</td>
+
+                <td>{{ student.student_id }}</td>
+
+                <td>{{ student.student_name }}</td>
+
+                <td>
+                    {% if student.attendance_status == "Present" %}
+                        <span class="present">Present</span>
+                    {% else %}
+                        <span class="absent">Absent</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if student.attendance_time %}
+                        {{ student.attendance_time.strftime("%d-%m-%Y %I:%M:%S %p") }}
+                    {% else %}
+                        Not Marked
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+
+        <div class="empty">
+            <h3>No Students Enrolled</h3>
+            <p>No students were enrolled in this subject for this report.</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

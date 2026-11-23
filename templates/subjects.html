@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Management</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        h2 {
+            color: #243447;
+        }
+
+        input {
+            padding: 10px;
+            margin: 8px 5px 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .deactivate {
+            background: #dc2626;
+        }
+
+        .reactivate {
+            background: #16a34a;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #eef2ff;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            background: #e0f2fe;
+            border-radius: 5px;
+        }
+
+        .active-status {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        .inactive-status {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Subject Management</h2>
+
+    <p>
+        <a href="{{ url_for('home') }}">← Back to Dashboard</a>
+    </p>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <h3>Add New Subject</h3>
+
+    <form method="POST" action="{{ url_for('subjects') }}">
+
+        <input
+            type="text"
+            name="subject_name"
+            placeholder="Subject Name"
+            maxlength="120"
+            required
+        >
+
+        <input
+            type="text"
+            name="subject_code"
+            placeholder="Subject Code (Optional)"
+            maxlength="30"
+        >
+
+        <button type="submit">Add Subject</button>
+
+    </form>
+
+    <h3>Registered Subjects</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Subject Name</th>
+                <th>Subject Code</th>
+                <th>Created By</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for subject in subjects %}
+            <tr>
+                <td>{{ subject.subject_id }}</td>
+                <td>{{ subject.subject_name }}</td>
+                <td>{{ subject.subject_code or '-' }}</td>
+                <td>{{ subject.lecturer_name or 'Unknown' }}</td>
+
+                <td>
+                    {% if subject.is_active %}
+                        <span class="active-status">Active</span>
+                    {% else %}
+                        <span class="inactive-status">Inactive</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if subject.is_active %}
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('deactivate_subject') }}"
+                        onsubmit="return confirm('Are you sure you want to deactivate this subject?');"
+                    >
+                        <input
+                            type="hidden"
+                            name="subject_id"
+                            value="{{ subject.subject_id }}"
+                        >
+
+                        <button type="submit" class="deactivate">
+                            Deactivate
+                        </button>
+                    </form>
+
+                    {% else %}
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('reactivate_subject') }}"
+                        onsubmit="return confirm('Do you want to reactivate this subject?');"
+                    >
+                        <input
+                            type="hidden"
+                            name="subject_id"
+                            value="{{ subject.subject_id }}"
+                        >
+
+                        <button type="submit" class="reactivate">
+                            Reactivate
+                        </button>
+                    </form>
+
+                    {% endif %}
+                </td>
+            </tr>
+
+            {% else %}
+            <tr>
+                <td colspan="6">No subjects registered yet.</td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>

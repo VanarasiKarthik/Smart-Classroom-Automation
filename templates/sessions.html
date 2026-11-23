@@ -1,0 +1,494 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Class Sessions</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #263238;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            margin: 0;
+            color: #263b63;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #263b63;
+        }
+
+        label {
+            display: block;
+            margin: 18px 0 8px;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd2dc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button {
+            margin-top: 22px;
+            padding: 12px 22px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .end-button,
+        .stop-button {
+            background: #dc2626;
+        }
+
+        .end-button:hover,
+        .stop-button:hover {
+            background: #b91c1c;
+        }
+
+        .start-ai-button {
+            background: #16a34a;
+        }
+
+        .start-ai-button:hover {
+            background: #15803d;
+        }
+
+        .back-link {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .message {
+            background: #e8f1ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .active {
+            border-left: 5px solid #16a34a;
+        }
+
+        .status {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .details p {
+            margin: 12px 0;
+        }
+
+        .ai-card {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8fafc;
+            border: 1px solid #dbe3ef;
+            border-radius: 10px;
+        }
+
+        .ai-running {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .ai-stopped {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .ai-description {
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .duration-info {
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+        }
+    </style>
+    {% if active_session %}
+<meta http-equiv="refresh" content="5">
+{% endif %}
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Class Session Management</h1>
+
+        <a class="back-link" href="{{ url_for('home') }}">
+            Back to Dashboard
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if active_session %}
+
+        <div class="card active">
+
+            <h2>Current Active Session</h2>
+
+            <p class="status">● Session Active</p>
+
+            <div class="details">
+
+                <p>
+                    <strong>Session ID:</strong>
+                    {{ active_session.session_id }}
+                </p>
+
+                <p>
+                    <strong>Subject:</strong>
+                    {{ active_session.subject_name }}
+                </p>
+
+                <p>
+                    <strong>Lecturer:</strong>
+                    {{ active_session.lecturer_name or 'Not available' }}
+                </p>
+
+                <p>
+                    <strong>Start Time:</strong>
+                    {{ active_session.started_at }}
+                </p>
+
+                <p>
+                    <strong>Duration:</strong>
+
+                    {% if active_session.duration_minutes is defined
+                          and active_session.duration_minutes is not none %}
+
+                        {% if active_session.duration_minutes >= 60 %}
+                            {{ active_session.duration_minutes // 60 }} hour(s)
+                        {% else %}
+                            {{ active_session.duration_minutes }} minute(s)
+                        {% endif %}
+
+                    {% elif active_session.duration_hours is not none %}
+
+                        {{ active_session.duration_hours }} hour(s)
+
+                    {% else %}
+
+                        Not available
+
+                    {% endif %}
+                </p>
+
+                <p>
+                    <strong>Scheduled End:</strong>
+                    {{ active_session.scheduled_end_at }}
+                </p>
+
+            </div>
+
+            <p>
+                A class session is already running.
+                You cannot start another session yet.
+            </p>
+
+            <!-- AI ATTENDANCE MANAGEMENT -->
+
+            <div class="ai-card">
+
+                <h2>AI Face Recognition Attendance</h2>
+
+                {% if attendance_running %}
+
+                    <p class="ai-running">
+                        ● AI Attendance is Running
+                    </p>
+
+                    <p class="ai-description">
+                        The webcam is being used for automatic
+                        student face recognition and attendance.
+                    </p>
+
+                    <form method="POST"
+                          action="{{ url_for('stop_attendance') }}"
+                          onsubmit="return confirm('Are you sure you want to stop AI attendance?');">
+
+                        <button type="submit" class="stop-button">
+                            Stop AI Attendance
+                        </button>
+
+                    </form>
+
+                {% else %}
+
+                    <p class="ai-stopped">
+                        ● AI Attendance is Not Running
+                    </p>
+
+                    <p class="ai-description">
+                        Start AI attendance to open the webcam
+                        and automatically recognize registered students.
+                    </p>
+
+                    <form method="POST"
+                          action="{{ url_for('start_attendance') }}">
+
+                        <button type="submit" class="start-ai-button">
+                            Start AI Attendance
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+            </div>
+
+            <!-- END CLASS SESSION -->
+
+            <form method="POST"
+                  action="{{ url_for('manage_sessions') }}"
+                  onsubmit="return confirm('Are you sure you want to end this class session?');">
+
+                <input type="hidden" name="action" value="end_session">
+
+                <input type="hidden"
+                       name="session_id"
+                       value="{{ active_session.session_id }}">
+
+                <button type="submit" class="end-button">
+                    End Class Session
+                </button>
+
+            </form>
+
+        </div>
+
+    {% else %}
+
+        <div class="card">
+
+            <h2>Start a New Class</h2>
+
+            {% if subjects %}
+
+                <form method="POST"
+                      action="{{ url_for('manage_sessions') }}">
+
+                    <label for="subject_id">Select Subject</label>
+
+                    <select id="subject_id" name="subject_id" required>
+
+                        <option value="">-- Choose Subject --</option>
+
+                        {% for subject in subjects %}
+
+                            <option value="{{ subject.subject_id }}">
+                                {{ subject.subject_name }}
+
+                                {% if subject.subject_code %}
+                                    ({{ subject.subject_code }})
+                                {% endif %}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <!-- SESSION MODE -->
+
+                    <label for="duration_mode">Session Mode</label>
+
+                    <select id="duration_mode"
+                            name="duration_mode"
+                            required>
+
+                        <option value="demo" selected>Demo Mode</option>
+                        <option value="normal">Normal Mode</option>
+
+                    </select>
+
+                    <p class="duration-info">
+                        Demo Mode is intended for quick project demonstrations.
+                    </p>
+
+                    <!-- DEMO DURATION -->
+
+                    <div id="demo_duration_section">
+
+                        <label for="duration_minutes">
+                            Demo Duration
+                        </label>
+
+                        <select id="duration_minutes"
+                                name="duration_minutes"
+                                required>
+
+                            <option value="2" selected>2 Minutes</option>
+                            <option value="5">5 Minutes</option>
+                            <option value="10">10 Minutes</option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- NORMAL DURATION -->
+
+                    <div id="normal_duration_section"
+                         style="display: none;">
+
+                        <label for="duration_hours">
+                            Class Duration
+                        </label>
+
+                        <select id="duration_hours"
+                                name="duration_hours"
+                                disabled>
+
+                            <option value="1">1 Hour</option>
+                            <option value="2">2 Hours</option>
+                            <option value="3">3 Hours</option>
+                            <option value="4">4 Hours</option>
+
+                        </select>
+
+                    </div>
+
+                    <button type="submit">
+                        Start Class Session
+                    </button>
+
+                </form>
+
+            {% else %}
+
+                <p>
+                    No active subjects found.
+                    Please add a subject first.
+                </p>
+
+                <a class="back-link" href="{{ url_for('subjects') }}">
+                    Go to Subject Management
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+<!-- SESSION MODE SWITCHING -->
+
+<script>
+
+    const modeSelect = document.getElementById("duration_mode");
+
+    if (modeSelect) {
+
+        const demoSection =
+            document.getElementById("demo_duration_section");
+
+        const normalSection =
+            document.getElementById("normal_duration_section");
+
+        const demoDuration =
+            document.getElementById("duration_minutes");
+
+        const normalDuration =
+            document.getElementById("duration_hours");
+
+        function updateDurationMode() {
+
+            if (modeSelect.value === "demo") {
+
+                demoSection.style.display = "block";
+                normalSection.style.display = "none";
+
+                demoDuration.disabled = false;
+                demoDuration.required = true;
+
+                normalDuration.disabled = true;
+                normalDuration.required = false;
+
+            } else {
+
+                demoSection.style.display = "none";
+                normalSection.style.display = "block";
+
+                demoDuration.disabled = true;
+                demoDuration.required = false;
+
+                normalDuration.disabled = false;
+                normalDuration.required = true;
+
+            }
+
+        }
+
+        modeSelect.addEventListener("change", updateDurationMode);
+
+        updateDurationMode();
+
+    }
+
+</script>
+
+</body>
+</html>

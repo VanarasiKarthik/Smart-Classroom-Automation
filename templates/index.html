@@ -1,0 +1,277 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom | Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="dashboard-page">
+
+<div class="app-shell">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">SC</div>
+            <div>
+                <h2>SmartClass</h2>
+                <p>Management System</p>
+            </div>
+        </div>
+
+        <div class="sidebar-label">MAIN MENU</div>
+
+        <nav class="side-nav">
+
+            <a href="{{ url_for('home') }}" class="side-link active">
+                <span>▦</span> Dashboard
+            </a>
+
+            <a href="{{ url_for('enrollments') }}" class="side-link">
+                <span>▣</span> Manage Enrollments
+            </a>
+
+            <a href="{{ url_for('students') }}" class="side-link">
+                <span>♙</span> Students
+            </a>
+
+            <a href="{{ url_for('register_lecturer') }}" class="side-link">
+                <span>♧</span> Register Lecturer
+            </a>
+
+            <a href="{{ url_for('subjects') }}" class="side-link">
+                <span>▤</span> Manage Subjects
+            </a>
+
+            <a href="{{ url_for('manage_sessions') }}" class="side-link">
+                <span>◷</span> Class Sessions
+            </a>
+
+            <a href="{{ url_for('attendance_management') }}" class="side-link">
+                <span>✓</span> Attendance Reports
+            </a>
+
+            <a href="{{ url_for('profile') }}" class="side-link">
+                <span>⚙</span> My Profile
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="system-status">
+                <span class="online-dot"></span>
+                <div>
+                    <strong>System Online</strong>
+                    <small>Database Connected</small>
+                </div>
+            </div>
+
+            <form action="{{ url_for('logout') }}" method="POST">
+                <button type="submit" class="sidebar-logout">
+                    ⇥ Logout
+                </button>
+            </form>
+        </div>
+
+    </aside>
+
+    <main class="dashboard-main">
+
+        <header class="dashboard-header">
+            <div>
+                <p class="header-date">SMART CLASSROOM AUTOMATION</p>
+                <h1>Dashboard Overview</h1>
+                <p class="header-subtitle">
+                    Monitor your classroom activities and attendance.
+                </p>
+            </div>
+
+            <div class="profile-chip">
+                <div class="profile-avatar">
+                    {{ session.get('lecturer_name', 'L')[0]|upper }}
+                </div>
+                <div>
+                    <strong>{{ session.get('lecturer_name', 'Lecturer') }}</strong>
+                    <small>Lecturer</small>
+                </div>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="dashboard-flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="welcome-banner">
+            <div>
+                <p class="welcome-tag">WELCOME BACK</p>
+                <h2>Hello, {{ session.get('lecturer_name', 'Lecturer') }}!</h2>
+                <p>
+                    Here's what's happening in your smart classroom today.
+                </p>
+            </div>
+            <div class="welcome-symbol">🎓</div>
+        </section>
+
+        <section class="stats-grid">
+
+            <article class="stat-card blue-card">
+                <div class="stat-top">
+                    <span>Registered Students</span>
+                    <span class="stat-icon">♙</span>
+                </div>
+                <h2>{{ total_students }}</h2>
+                <p>Total active students</p>
+            </article>
+
+            <article class="stat-card purple-card">
+                <div class="stat-top">
+                    <span>Total Subjects</span>
+                    <span class="stat-icon">▤</span>
+                </div>
+                <h2>{{ total_subjects }}</h2>
+                <p>Total active subjects</p>
+            </article>
+
+            <article class="stat-card green-card">
+                <div class="stat-top">
+                    <span>Present Today</span>
+                    <span class="stat-icon">✓</span>
+                </div>
+                <h2>{{ present_today }}</h2>
+                <p>Students marked present</p>
+            </article>
+
+            <article class="stat-card orange-card">
+                <div class="stat-top">
+                    <span>Absent Today</span>
+                    <span class="stat-icon">!</span>
+                </div>
+                <h2>{{ absent_today }}</h2>
+                <p>Students not yet present</p>
+            </article>
+
+        </section>
+
+        <section class="content-grid">
+
+            <div class="dashboard-panel attendance-panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h2>Recent Attendance</h2>
+                        <p>Latest attendance activity recorded today</p>
+                    </div>
+
+                    <a href="{{ url_for('attendance_management') }}">
+                        View Reports →
+                    </a>
+                </div>
+
+                {% if recent_attendance %}
+
+                <div class="table-wrapper">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Attendance Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for record in recent_attendance %}
+                            <tr>
+                                <td>{{ record.student_id }}</td>
+                                <td>{{ record.student_name }}</td>
+                                <td>{{ record.attendance_time }}</td>
+                                <td>
+                                    {% if record.status == 'Present' %}
+                                        <span class="status-badge present-badge">
+                                            Present
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge absent-badge">
+                                            {{ record.status }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% else %}
+                    <div class="empty-state">
+                        <span>📋</span>
+                        <p>No attendance records found for today.</p>
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <div class="dashboard-panel register-panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h2>Register Student</h2>
+                        <p>Add a new student to your classroom</p>
+                    </div>
+                    <span class="register-icon">＋</span>
+                </div>
+
+                <form action="{{ url_for('register_student') }}" method="POST">
+
+                    <label for="student_id">Student ID</label>
+                    <input
+                        type="text"
+                        id="student_id"
+                        name="student_id"
+                        placeholder="Example: SRU2027001"
+                        maxlength="30"
+                        required
+                    >
+
+                    <label for="student_name">Student Name</label>
+                    <input
+                        type="text"
+                        id="student_name"
+                        name="student_name"
+                        placeholder="Enter student name"
+                        required
+                    >
+
+                    <button type="submit" class="register-submit">
+                        + Register Student
+                    </button>
+
+                </form>
+
+                <a href="{{ url_for('students') }}" class="all-students-link">
+                    View all registered students →
+                </a>
+
+            </div>
+
+        </section>
+
+        <footer class="dashboard-footer">
+            Smart Classroom Automation System
+            <span>AI-Powered Attendance Monitoring</span>
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>

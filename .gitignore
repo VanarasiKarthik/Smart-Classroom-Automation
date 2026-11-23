@@ -1,0 +1,41 @@
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Student biometric data
+dataset/
+trainer.yml
+labels.json
+
+# Database backups and exports
+*.sql
+*.csv
+*.db
+*.xlsx
+
+# Backup copies
+*backup*.py
+* copy.py
+*old*.py
+
+# Local testing scripts
+camera_test.py
+test_mysql.py
+register_student.py
+train_faces.py
+
+# IDE and OS files
+.vscode/
+.DS_Store
+Thumbs.db

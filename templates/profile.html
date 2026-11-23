@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Profile</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            display: grid;
+            place-items: center;
+            min-height: 90vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 350px;
+            max-width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .message {
+            color: #b91c1c;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h2>Manage Profile</h2>
+
+    <p>Lecturer: {{ lecturer_name }}</p>
+    <p>Username: {{ username }}</p>
+
+    {% for message in get_flashed_messages() %}
+        <p class="message">{{ message }}</p>
+    {% endfor %}
+
+    <form method="POST">
+
+        <input
+            type="tel"
+            name="mobile_number"
+            value="{{ mobile_number or '' }}"
+            placeholder="Enter Mobile Number"
+            maxlength="20"
+            required
+        >
+
+        <button type="submit">Save Mobile Number</button>
+
+    </form>
+
+    <a href="{{ url_for('home') }}">← Back to Dashboard</a>
+
+</div>
+
+</body>
+</html>

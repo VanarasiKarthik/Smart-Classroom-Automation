@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            color: #243b55;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #243b55;
+            text-decoration: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 13px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #243b55;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f7f9fc;
+        }
+
+        .present {
+            color: green;
+            font-weight: bold;
+        }
+
+        .absent {
+            color: red;
+            font-weight: bold;
+        }
+
+        .percentage {
+            font-weight: bold;
+            color: #243b55;
+        }
+
+        .empty {
+            padding: 25px;
+            text-align: center;
+            color: #666;
+        }
+
+        .message {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <a class="back" href="{{ url_for('students') }}">← Back to Students</a>
+
+    <h2>Attendance Management</h2>
+
+    <p>Completed Class Session Attendance Reports</p>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <p class="message">{{ message }}</p>
+        {% endfor %}
+    {% endwith %}
+
+    {% if sessions %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Session ID</th>
+                <th>Subject</th>
+                <th>Lecturer</th>
+                <th>Session Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Duration</th>
+                <th>Enrolled</th>
+                <th>Present</th>
+                <th>Absent</th>
+                <th>Attendance %</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in sessions %}
+            <tr>
+                <td>
+    <a href="{{ url_for('attendance_report', session_id=item.session_id) }}">
+        {{ item.session_id }}
+    </a>
+</td>
+                <td>{{ item.subject_name }}</td>
+                <td>{{ item.lecturer_name or "N/A" }}</td>
+
+                <td>
+                    {{ item.session_date.strftime("%d-%m-%Y") if item.session_date else "N/A" }}
+                </td>
+
+                <td>
+                    {{ item.started_at.strftime("%I:%M %p") if item.started_at else "N/A" }}
+                </td>
+
+                <td>
+                    {{ item.ended_at.strftime("%I:%M %p") if item.ended_at else "N/A" }}
+                </td>
+
+                <td>{{ item.duration_minutes or 0 }} min</td>
+
+                <td>{{ item.total_enrolled }}</td>
+
+                <td class="present">{{ item.present_count }}</td>
+
+                <td class="absent">{{ item.absent_count }}</td>
+
+                <td class="percentage">
+                    {{ item.attendance_percentage }}%
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+
+        <div class="empty">
+            <h3>No Completed Sessions Found</h3>
+            <p>Attendance reports will appear here after class sessions are completed.</p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>
